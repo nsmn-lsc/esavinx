@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Concentrado y Registros Clínicos | Sistema ESAVI v2{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Header & Export Action -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-[#E2E8F0]">
+    <div>
+      <h1 class="text-2xl font-bold text-[#0A2540] tracking-tight flex items-center gap-2">
+        <i data-lucide="database" class="w-7 h-7 text-[#008B9E]"></i>
+        Concentrado de Registros ESAVI
+      </h1>
+      <p class="text-sm text-[#64748B] mt-1">
+        Consulta granular del histórico de notificaciones y exportación a Excel según el orden de columnas oficial.
+      </p>
+    </div>
+    
+    <div>
+      <button onclick="descargarExcelConFiltros()" class="inline-flex items-center px-4 py-2 bg-[#008B9E] hover:bg-[#0A2540] text-white text-sm font-semibold rounded-lg shadow-sm transition">
+        <i data-lucide="download" class="w-4 h-4 mr-1.5"></i>
+        Descargar Concentrado (.xlsx)
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters Toolbar (HTMX Enabled) -->
+  <div class="bg-white p-4 rounded-2xl shadow-sm border border-[#E2E8F0]">
+    <form id="filter-form"
+          hx-get="/records/table"
+          hx-target="#table-container"
+          hx-trigger="keyup changed delay:300ms from:#search-input, change from:select"
+          class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs">
+      
+      <!-- Búsqueda General -->
+      <div class="sm:col-span-2">
+        <label class="block font-semibold text-[#0A2540] mb-1">Buscar por CURP o Nombre</label>
+        <div class="relative">
+          <input type="text" id="search-input" name="search" placeholder="Ej. AAAA000000 o Pérez..."
+                 class="w-full pl-9 pr-3 py-2 border border-[#E2E8F0] rounded-lg text-[#0A2540] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#17B8BE] focus:border-[#008B9E]">
+          <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[#64748B]">
+            <i data-lucide="search" class="w-4 h-4"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtro Vacuna -->
+      <div>
+        <label class="block font-semibold text-[#0A2540] mb-1">Vacuna</label>
+        <input type="text" name="vacuna" placeholder="Ej. Influenza, COVID..."
+               class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-[#0A2540] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#17B8BE] focus:border-[#008B9E]">
+      </div>
+
+      <!-- Filtro Semana -->
+      <div>
+        <label class="block font-semibold text-[#0A2540] mb-1">Semana Epi</label>
+        <input type="number" name="sem_epi" min="1" max="53" placeholder="1 - 53"
+               class="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg text-[#0A2540] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#17B8BE] focus:border-[#008B9E]">
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Dynamic Table Container -->
+  <div id="table-container" class="space-y-4">
+    {% include "partials/records_table.html" %}
+  </div>
+
+</div>
+
+<!-- Record Detail Modal -->
+<div id="detail-modal" class="hidden fixed inset-0 z-50 bg-[#0A2540]/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-[#E2E8F0] max-h-[90vh] flex flex-col">
+    
+    <!-- Modal Header -->
+    <div class="p-5 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC] rounded-t-2xl">
+      <div>
+        <h3 class="text-lg font-bold text-[#0A2540] flex items-center gap-2">
+          <i data-lucide="file-text" class="w-5 h-5 text-[#008B9E]"></i>
+          Ficha Clínica Completa ESAVI
+        </h3>
+        <p class="text-xs text-[#64748B]" id="modal-curp-header">CURP: -</p>
+      </div>
+      <button onclick="cerrarModal()" class="p-1 text-[#64748B] hover:text-[#0A2540] rounded-lg">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6 overflow-y-auto space-y-4 text-xs">
+      <div id="modal-loading" class="text-center py-10">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#008B9E] mx-auto"></div>
+        <p class="mt-2 text-[#64748B]">Cargando datos clínicos...</p>
+      </div>
+      
+      <div id="modal-content" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Rellenado por JS -->
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="p-4 border-t border-[#E2E8F0] bg-[#F8FAFC] rounded-b-2xl flex justify-end">
+      <button onclick="cerrarModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-[#0A2540] font-semibold rounded-lg transition">
+        Cerrar
+      </button>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function descargarExcelConFiltros() {
+    const form = document.getElementById('filter-form');
+    const formData = new FormData(form);
+    const params = new URLSearchParams();
+    for (const [key, value] of formData.entries()) {
+      if (value && typeof value === 'string' && value.trim() !== '') {
+        params.append(key, value.trim());
+      }
+    }
+    const queryStr = params.toString();
+    window.location.href = `/api/export/excel${queryStr ? '?' + queryStr : ''}`;
+  }
+
+  async function verDetalleRegistro(recordId) {
+    const modal = document.getElementById('detail-modal');
+    const loading = document.getElementById('modal-loading');
+    const content = document.getElementById('modal-content');
+    
+    modal.classList.remove('hidden');
+    loading.classList.remove('hidden');
+    content.classList.add('hidden');
+    
+    try {
+      const res = await fetch(`/api/records/${recordId}`);
+      if (!res.ok) throw new Error("No se pudo cargar el registro");
+      const record = await res.json();
+      
+      document.getElementById('modal-curp-header').textContent = `CURP: ${record.curp} | Paciente: ${record.nombre_completo || 'No especificado'}`;
+      
+      const fullData = record.datos_completos || {};
+      let html = '';
+      
+      for (const [key, value] of Object.entries(fullData)) {
+        if (value !== null && value !== '' && value !== undefined) {
+          html += `
+            <div class="bg-[#F8FAFC] p-2.5 rounded-lg border border-[#E2E8F0]">
+              <span class="block font-semibold text-[#64748B] text-[11px] uppercase">${key}</span>
+              <span class="font-medium text-[#0A2540] text-xs">${value}</span>
+            </div>
+          `;
+        }
+      }
+      
+      content.innerHTML = html;
+      loading.classList.add('hidden');
+      content.classList.remove('hidden');
+    } catch (err) {
+      loading.innerHTML = `<p class="text-rose-600 font-medium">Error al cargar datos del registro: ${err.message}</p>`;
+    }
+  }
+
+  function cerrarModal() {
+    document.getElementById('detail-modal').classList.add('hidden');
+  }
+
+  document.body.addEventListener('htmx:afterSwap', function() {
+    lucide.createIcons();
+  });
+</script>
+{% endblock %}

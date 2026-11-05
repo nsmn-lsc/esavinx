@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Carga por Lotes de Archivos ESAVI | Sistema ESAVI v2{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div class="bg-white p-5 rounded-2xl shadow-sm border border-[#E2E8F0]">
+    <h1 class="text-2xl font-bold text-[#0A2540] tracking-tight flex items-center gap-2">
+      <i data-lucide="upload-cloud" class="w-7 h-7 text-[#008B9E]"></i>
+      Ingesta de Formatos Clínicos ESAVI
+    </h1>
+    <p class="text-sm text-[#64748B] mt-1">
+      Cargue de 1 a N plantillas oficiales (.xlsx o .xlsm). El sistema validará la CURP en posición (0,4) y extraerá los más de 100 campos clínicos.
+    </p>
+  </div>
+
+  <!-- Form and Upload Area -->
+  <div class="bg-white p-6 rounded-2xl shadow-sm border border-[#E2E8F0] space-y-6">
+    
+    <!-- Duplicate Strategy Selector -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0] gap-4">
+      <div>
+        <h2 class="text-sm font-semibold text-[#0A2540]">Control de Registros Duplicados</h2>
+        <p class="text-xs text-[#64748B]">Regla de unicidad por: <code class="bg-[#E2E8F0] px-1 py-0.5 rounded text-[#0A2540] font-mono text-[11px]">CURP + Fecha Aplicación + Vacuna</code></p>
+      </div>
+      <div class="flex items-center space-x-4">
+        <label class="inline-flex items-center text-sm font-medium text-[#0A2540] cursor-pointer">
+          <input type="radio" name="duplicate_strategy" value="skip" checked class="text-[#008B9E] focus:ring-[#17B8BE] h-4 w-4">
+          <span class="ml-2">Ignorar existentes</span>
+        </label>
+        <label class="inline-flex items-center text-sm font-medium text-[#0A2540] cursor-pointer">
+          <input type="radio" name="duplicate_strategy" value="update" class="text-[#008B9E] focus:ring-[#17B8BE] h-4 w-4">
+          <span class="ml-2">Actualizar / Sobrescribir</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Drag & Drop Zone -->
+    <div id="drop-zone" class="border-2 border-dashed border-[#E2E8F0] hover:border-[#17B8BE] bg-[#F8FAFC] hover:bg-[#D9F0F3]/30 rounded-2xl p-8 text-center transition cursor-pointer flex flex-col items-center justify-center min-h-[220px]">
+      <div class="p-4 bg-[#D9F0F3] text-[#008B9E] rounded-2xl mb-3 shadow-inner">
+        <i data-lucide="file-up" class="w-10 h-10"></i>
+      </div>
+      <h3 class="text-base font-semibold text-[#0A2540]">Arrastre y suelte sus archivos Excel aquí</h3>
+      <p class="text-xs text-[#64748B] mt-1">o haga clic para seleccionar archivos (.xlsx, .xlsm)</p>
+      <input type="file" id="file-input" multiple accept=".xlsx,.xlsm,.xls" class="hidden">
+    </div>
+
+    <!-- Selected Files Preview & Action Button -->
+    <div id="file-list-container" class="hidden space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-semibold text-[#0A2540]">Archivos seleccionados (<span id="file-count">0</span>)</h3>
+        <button type="button" id="clear-files-btn" class="text-xs text-rose-600 hover:text-rose-700 font-medium">Limpiar selección</button>
+      </div>
+
+      <ul id="file-list" class="divide-y divide-[#E2E8F0] max-h-48 overflow-y-auto bg-[#F8FAFC] p-3 rounded-xl border border-[#E2E8F0] text-xs">
+        <!-- Rellenado por JS -->
+      </ul>
+
+      <div class="flex justify-end">
+        <button type="button" id="upload-btn" class="inline-flex items-center px-6 py-2.5 bg-[#008B9E] hover:bg-[#0A2540] text-white text-sm font-semibold rounded-xl shadow-md transition disabled:opacity-50">
+          <i data-lucide="play" class="w-4 h-4 mr-2"></i>
+          Iniciar Procesamiento
+        </button>
+      </div>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div id="upload-progress" class="hidden flex flex-col items-center justify-center p-6 space-y-3">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-[#008B9E]"></div>
+      <p class="text-sm font-medium text-[#0A2540]">Extrayendo y validando registros clínicos...</p>
+    </div>
+
+  </div>
+
+  <!-- Results Summary Card -->
+  <div id="results-card" class="hidden bg-white p-6 rounded-2xl shadow-sm border border-[#E2E8F0] space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-bold text-[#0A2540] flex items-center gap-2">
+        <i data-lucide="check-check" class="w-5 h-5 text-emerald-600"></i>
+        Resumen del Lote Procesado
+      </h2>
+      <a href="/records" class="inline-flex items-center text-xs font-semibold text-[#008B9E] hover:text-[#17B8BE]">
+        Ver Concentrado Acumulado &rarr;
+      </a>
+    </div>
+
+    <!-- Badges -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+      <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+        <p class="text-xs text-emerald-600 font-semibold">Nuevos</p>
+        <p class="text-2xl font-bold text-emerald-700" id="res-success-count">0</p>
+      </div>
+      <div class="p-3 bg-amber-50 rounded-xl border border-amber-100">
+        <p class="text-xs text-amber-600 font-semibold">Actualizados</p>
+        <p class="text-2xl font-bold text-amber-700" id="res-updated-count">0</p>
+      </div>
+      <div class="p-3 bg-slate-100 rounded-xl border border-[#E2E8F0]">
+        <p class="text-xs text-[#64748B] font-semibold">Ignorados (Dup)</p>
+        <p class="text-2xl font-bold text-slate-700" id="res-skipped-count">0</p>
+      </div>
+      <div class="p-3 bg-rose-50 rounded-xl border border-rose-100">
+        <p class="text-xs text-rose-600 font-semibold">Errores</p>
+        <p class="text-2xl font-bold text-rose-700" id="res-error-count">0</p>
+      </div>
+    </div>
+
+    <!-- Results Table -->
+    <div class="overflow-x-auto border border-[#E2E8F0] rounded-xl">
+      <table class="min-w-full divide-y divide-[#E2E8F0] text-left text-xs">
+        <thead class="bg-[#F8FAFC] font-semibold text-[#64748B]">
+          <tr>
+            <th class="py-2.5 px-3">Archivo</th>
+            <th class="py-2.5 px-3">Estado</th>
+            <th class="py-2.5 px-3">CURP</th>
+            <th class="py-2.5 px-3">Vacuna</th>
+            <th class="py-2.5 px-3">Fecha Apl.</th>
+            <th class="py-2.5 px-3">Detalle</th>
+          </tr>
+        </thead>
+        <tbody id="results-table-body" class="divide-y divide-[#E2E8F0] bg-white">
+          <!-- Rellenado por JS -->
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/uploader.js"></script>
+{% endblock %}

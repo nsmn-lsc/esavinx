@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Sistema ESAVI v2{% endblock %}</title>
+  <link rel="icon" type="image/png" href="/static/logo_esavi.png">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: '#0A2540',
+            teal: '#008B9E',
+            turquoise: '#17B8BE',
+            ice: '#D9F0F3',
+            surface: '#FFFFFF',
+            'app-bg': '#F8FAFC',
+            'border-subtle': '#E2E8F0',
+            'text-main': '#0A2540',
+            'text-muted': '#64748B',
+            brand: {
+              navy: '#0A2540',
+              teal: '#008B9E',
+              turquoise: '#17B8BE',
+              ice: '#D9F0F3',
+              50: '#F0F9FA',
+              100: '#D9F0F3',
+              500: '#17B8BE',
+              600: '#008B9E',
+              700: '#0A4A5E',
+              800: '#0A324A',
+              900: '#0A2540',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- HTMX -->
+  <script src="https://unpkg.com/htmx.org@2.0.2"></script>
+
+  <!-- Chart.js & Plugin Datalabels -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      /* Paleta Base - Modo Claro */
+      --color-primary-navy: #0A2540;
+      --color-secondary-teal: #008B9E;
+      --color-accent-turquoise: #17B8BE;
+      --color-ice-blue: #D9F0F3;
+      --color-surface-white: #FFFFFF;
+
+      /* Asignaciones Semánticas */
+      --bg-app: #F8FAFC;
+      --bg-card: var(--color-surface-white);
+      --border-subtle: #E2E8F0;
+      --text-main: var(--color-primary-navy);
+      --text-muted: #64748B;
+      --interactive-accent: var(--color-accent-turquoise);
+    }
+
+    body {
+      background-color: var(--bg-app);
+      color: var(--text-main);
+    }
+
+    [x-cloak] { display: none !important; }
+    .htmx-indicator { display: none; }
+    .htmx-request .htmx-indicator { display: inline-flex; }
+    .htmx-request.htmx-indicator { display: inline-flex; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="h-full flex flex-col font-sans antialiased bg-[#F8FAFC] text-[#0A2540]">
+
+  {% if user %}
+  <!-- Header / Navigation Bar -->
+  <header class="bg-[#0A2540] text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Logo & Title -->
+        <a href="/dashboard" class="flex items-center space-x-3 group">
+          <div class="h-10 w-auto flex items-center justify-center p-1 bg-white/10 rounded-lg border border-white/15 shadow-xs">
+            <img src="/static/logo_esavi.png" alt="Logo ESAVI" class="h-8 w-auto object-contain">
+          </div>
+          <div>
+            <div class="text-xl font-bold tracking-tight text-white group-hover:text-[#17B8BE] transition flex items-center gap-2">
+              ESAVI <span class="text-[#17B8BE] text-sm font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#0A2540]/80 border border-[#008B9E]/50">v2.0</span>
+            </div>
+            <p class="text-xs text-slate-300 hidden sm:block">Vigilancia Epidemiológica de Eventos Inmunológicos</p>
+          </div>
+        </a>
+
+        <!-- Navigation Links -->
+        <nav class="hidden md:flex items-center space-x-1">
+          <a href="/dashboard" class="px-3 py-2 rounded-md text-sm font-medium {% if active_page == 'dashboard' %}bg-[#008B9E] text-white shadow-sm{% else %}text-slate-300 hover:bg-[#071d33] hover:text-[#17B8BE]{% endif %} transition flex items-center space-x-1.5">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            <span>Dashboard</span>
+          </a>
+          <a href="/upload" class="px-3 py-2 rounded-md text-sm font-medium {% if active_page == 'upload' %}bg-[#008B9E] text-white shadow-sm{% else %}text-slate-300 hover:bg-[#071d33] hover:text-[#17B8BE]{% endif %} transition flex items-center space-x-1.5">
+            <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+            <span>Carga de Archivos</span>
+          </a>
+          <a href="/records" class="px-3 py-2 rounded-md text-sm font-medium {% if active_page == 'records' %}bg-[#008B9E] text-white shadow-sm{% else %}text-slate-300 hover:bg-[#071d33] hover:text-[#17B8BE]{% endif %} transition flex items-center space-x-1.5">
+            <i data-lucide="database" class="w-4 h-4"></i>
+            <span>Concentrado & Registros</span>
+          </a>
+        </nav>
+
+        <!-- User Profile & Logout -->
+        <div class="flex items-center space-x-4">
+          <div class="hidden lg:flex flex-col text-right">
+            <span class="text-xs font-semibold text-slate-200">{{ user.full_name or user.username }}</span>
+            <span class="text-[11px] text-[#17B8BE]">@{{ user.username }}</span>
+          </div>
+          <a href="/logout" class="inline-flex items-center px-3 py-1.5 border border-slate-700 rounded-md text-xs font-medium text-slate-300 bg-[#071d33] hover:bg-rose-600 hover:text-white hover:border-rose-600 transition shadow-sm">
+            <i data-lucide="log-out" class="w-3.5 h-3.5 mr-1.5"></i>
+            Salir
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </header>
+  {% endif %}
+
+  <!-- Main Content -->
+  <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-[#E2E8F0] mt-auto py-4 text-center text-xs text-[#64748B]">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0">
+      <span>Sistema ESAVI v2 &bull; Sistema de Vigilancia Epidemiológica</span>
+      <span>Hetzner Cloud Secure Infrastructure</span>
+    </div>
+  </footer>
+
+  <script>
+    // Inicializar iconos de Lucide
+    lucide.createIcons();
+  </script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

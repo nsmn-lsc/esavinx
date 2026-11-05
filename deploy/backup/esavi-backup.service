@@ -1,0 +1,22 @@
+[Unit]
+Description=Servicio de Respaldo Automatizado de Base de Datos ESAVI v2
+After=postgresql.service network.target
+
+[Service]
+Type=oneshot
+User=postgres
+Group=postgres
+# Variables de entorno para autenticación desatendida segura (o usar ~/.pgpass)
+Environment="PGPASSWORD=Cambiar_Password_Segura_2026!"
+Environment="DB_NAME=esavi_db"
+Environment="DB_USER=esavi_user"
+Environment="DB_HOST=127.0.0.1"
+Environment="BACKUP_DIR=/var/backups/esavi"
+Environment="RETENTION_DAYS=7"
+
+ExecStart=/usr/local/bin/db_backup.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

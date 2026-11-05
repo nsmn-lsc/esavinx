@@ -1,0 +1,72 @@
+# ==============================================================================
+# SISTEMA ESAVI V2 - .gitignore
+# ==============================================================================
+
+# Entornos virtuales de Python
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Byte-compiled / optimizados
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Archivos de entorno y credenciales (¡NUNCA subir claves ni contraseñas!)
+.env
+.env.local
+.env.production
+.env.*.local
+*.pem
+*.key
+*.cert
+
+# Bases de datos SQLite y temporales locales
+*.db
+*.sqlite3
+*.sqlite
+esavi_local.db
+cookies.txt
+
+# Datos de prueba, muestras, reportes clínicos y auditorías (Datos sensibles NOM-024)
+*.xlsx
+*.xlsm
+*.xls
+*.csv
+auditoria_*.csv
+reporte_*.csv
+uploads/
+temp_uploads/
+
+# Backups y dumps
+*.sql.gz
+*.tar.gz
+*.dump
+*.bak
+backups/
+
+# Logs del sistema y servidores
+*.log
+logs/
+/var/log/
+
+# Archivos de IDEs y editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Cobertura y pruebas
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

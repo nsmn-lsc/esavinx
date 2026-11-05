@@ -1,0 +1,45 @@
+# ==============================================================================
+# CONFIGURACIÓN DE CADDY PARA FILE-NODE (10.0.0.4)
+# Archivo de destino: /etc/caddy/Caddyfile (o /etc/caddy/sites-available/esavi.caddy)
+# ==============================================================================
+
+esavi.filenode.dev {
+    # 1. Límite de subida para procesamiento batch de archivos Excel clínicos (50MB)
+    request_body {
+        max_size 50MB
+    }
+
+    # 2. Compresión dinámica
+    encode gzip zstd
+
+    # 3. Encabezados de seguridad HTTP
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    # 4. Proxy inverso hacia app-node (10.0.0.2) en el puerto asignado 8006
+    reverse_proxy 10.0.0.2:8006 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+
+        # Timeouts extendidos para cargas pesadas de Excel
+        transport http {
+            read_timeout 120s
+            write_timeout 120s
+        }
+    }
+
+    # 5. Registro de accesos
+    log {
+        output file /var/log/caddy/esavi_access.log {
+            roll_size 10MB
+            roll_keep 10
+        }
+    }
+}

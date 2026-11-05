@@ -1,0 +1,13 @@
+[Unit]
+Description=Temporizador Diario para Respaldo de Base de Datos ESAVI v2
+Requires=esavi-backup.service
+
+[Timer]
+# Ejecutar diariamente a las 03:00 AM (horario de menor tráfico)
+OnCalendar=*-*-* 03:00:00
+# Si el servidor estaba apagado a esa hora, ejecutar inmediatamente al encender
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

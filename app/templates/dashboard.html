@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Analítico | Sistema ESAVI v2{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Header and Actions -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-[#E2E8F0]">
+    <div>
+      <h1 class="text-2xl font-bold text-[#0A2540] tracking-tight flex items-center gap-2">
+        <i data-lucide="layout-dashboard" class="w-7 h-7 text-[#008B9E]"></i>
+        Dashboard Epidemiológico
+      </h1>
+      <p class="text-sm text-[#64748B] mt-1">
+        Visualización analítica y monitoreo en tiempo real de eventos notificados.
+      </p>
+    </div>
+    
+    <div class="flex flex-wrap items-center gap-3">
+      <a href="/upload" class="inline-flex items-center px-4 py-2 bg-[#008B9E] hover:bg-[#0A2540] text-white text-sm font-semibold rounded-lg shadow-sm transition">
+        <i data-lucide="plus-circle" class="w-4 h-4 mr-1.5"></i>
+        Ingesta Batch
+      </a>
+      <a href="/api/export/excel" class="inline-flex items-center px-4 py-2 bg-[#17B8BE] hover:bg-[#008B9E] text-white text-sm font-semibold rounded-lg shadow-sm transition">
+        <i data-lucide="file-spreadsheet" class="w-4 h-4 mr-1.5"></i>
+        Exportar Excel
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI Cards Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="kpi-cards">
+    <!-- Total Casos -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-[#E2E8F0] flex items-center justify-between">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wider text-[#64748B]">Total Notificaciones</p>
+        <h3 class="text-3xl font-extrabold text-[#0A2540] mt-1" id="kpi-total-records">-</h3>
+        <span class="text-xs text-[#008B9E] font-medium inline-flex items-center mt-1">
+          <i data-lucide="activity" class="w-3.5 h-3.5 mr-1"></i> Acumulado en sistema
+        </span>
+      </div>
+      <div class="p-3 bg-[#D9F0F3] text-[#008B9E] rounded-xl">
+        <i data-lucide="files" class="w-6 h-6"></i>
+      </div>
+    </div>
+
+    <!-- Graves / Hospitalizados -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-[#E2E8F0] flex items-center justify-between">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wider text-[#64748B]">Eventos Graves / Hosp.</p>
+        <h3 class="text-3xl font-extrabold text-amber-600 mt-1" id="kpi-total-graves">-</h3>
+        <span class="text-xs text-amber-600 font-medium inline-flex items-center mt-1">
+          <i data-lucide="alert-triangle" class="w-3.5 h-3.5 mr-1"></i> Vigilancia estricta
+        </span>
+      </div>
+      <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+        <i data-lucide="shield-alert" class="w-6 h-6"></i>
+      </div>
+    </div>
+
+    <!-- Recuperados -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-[#E2E8F0] flex items-center justify-between">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wider text-[#64748B]">Recuperados / Alta</p>
+        <h3 class="text-3xl font-extrabold text-emerald-600 mt-1" id="kpi-total-recuperados">-</h3>
+        <span class="text-xs text-emerald-600 font-medium inline-flex items-center mt-1">
+          <i data-lucide="check-circle" class="w-3.5 h-3.5 mr-1"></i> Desenlace favorable
+        </span>
+      </div>
+      <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+        <i data-lucide="heart-pulse" class="w-6 h-6"></i>
+      </div>
+    </div>
+
+    <!-- Defunciones -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-[#E2E8F0] flex items-center justify-between">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wider text-[#64748B]">Defunciones</p>
+        <h3 class="text-3xl font-extrabold text-rose-600 mt-1" id="kpi-total-defunciones">-</h3>
+        <span class="text-xs text-rose-600 font-medium inline-flex items-center mt-1">
+          <i data-lucide="info" class="w-3.5 h-3.5 mr-1"></i> Causalidad en estudio
+        </span>
+      </div>
+      <div class="p-3 bg-rose-50 text-rose-600 rounded-xl">
+        <i data-lucide="archive" class="w-6 h-6"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row 1: Tendencia Semanal & Distribución por Vacuna -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Serie Temporal Semanal -->
+    <div class="lg:col-span-2 bg-white p-5 rounded-2xl shadow-sm border border-[#E2E8F0]">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-base font-bold text-[#0A2540] flex items-center gap-2">
+            <i data-lucide="line-chart" class="w-5 h-5 text-[#008B9E]"></i>
+            Curva Epidemiológica por Semana
+          </h2>
+          <p class="text-xs text-[#64748B]">Frecuencia de eventos por semana epidemiológica reportada</p>
+        </div>
+      </div>
+      <div class="relative h-72 w-full">
+        <canvas id="chartSemanas"></canvas>
+      </div>
+    </div>
+
+    <!-- Distribución por Vacuna -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-[#E2E8F0]">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-base font-bold text-[#0A2540] flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-5 h-5 text-[#008B9E]"></i>
+            Top Biológicos Notificados
+          </h2>
+          <p class="text-xs text-[#64748B]">Distribución porcentual por vacuna</p>
+        </div>
+      </div>
+      <div class="relative h-72 w-full flex items-center justify-center">
+        <canvas id="chartVacunas"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row 2: Grupos de Edad & Entidades Federativas -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Grupos de Edad -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-[#E2E8F0]">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-base font-bold text-[#0A2540] flex items-center gap-2">
+            <i data-lucide="users" class="w-5 h-5 text-[#008B9E]"></i>
+            Distribución por Grupo Etario
+          </h2>
+          <p class="text-xs text-[#64748B]">Población afectada por rangos de edad</p>
+        </div>
+      </div>
+      <div class="relative h-72 w-full">
+        <canvas id="chartEdades"></canvas>
+      </div>
+    </div>
+
+    <!-- Regiones Sanitarias de Hidalgo -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-[#E2E8F0]">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-base font-bold text-[#0A2540] flex items-center gap-2">
+            <i data-lucide="map-pin" class="w-5 h-5 text-[#008B9E]"></i>
+            Notificaciones por Región Sanitaria (Hidalgo)
+          </h2>
+          <p class="text-xs text-[#64748B]">Distribución de eventos en las 12 Regiones Sanitarias</p>
+        </div>
+      </div>
+      <div class="relative h-72 w-full">
+        <canvas id="chartRegiones"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/dashboard.js"></script>
+{% endblock %}

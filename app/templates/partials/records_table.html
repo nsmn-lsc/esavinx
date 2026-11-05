@@ -1,0 +1,91 @@
+<div class="overflow-x-auto border border-[#E2E8F0] rounded-2xl shadow-sm bg-white">
+  <table class="min-w-full divide-y divide-[#E2E8F0] text-left text-xs">
+    <thead class="bg-[#F8FAFC] font-semibold text-[#0A2540]">
+      <tr>
+        <th class="py-3 px-4">CURP / Folio</th>
+        <th class="py-3 px-4">Paciente</th>
+        <th class="py-3 px-4">Edad / Sexo</th>
+        <th class="py-3 px-4">Entidad / Municipio</th>
+        <th class="py-3 px-4">Sem. Epi</th>
+        <th class="py-3 px-4">Vacuna / Dosis</th>
+        <th class="py-3 px-4">Fecha Apl.</th>
+        <th class="py-3 px-4">Estado</th>
+        <th class="py-3 px-4 text-center">Acciones</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-[#E2E8F0] bg-white">
+      {% for r in records %}
+      <tr class="hover:bg-[#D9F0F3]/25 transition">
+        <td class="py-3 px-4 font-mono font-medium text-[#008B9E]">
+          {{ r.curp }}
+          {% if r.archivo_fuente %}
+          <div class="text-[10px] text-[#64748B] font-sans truncate max-w-[140px]" title="{{ r.archivo_fuente }}">{{ r.archivo_fuente }}</div>
+          {% endif %}
+        </td>
+        <td class="py-3 px-4 font-semibold text-[#0A2540]">
+          {{ r.nombre_completo or '-' }}
+        </td>
+        <td class="py-3 px-4 text-[#64748B]">
+          {% if r.edad_anios is not none %}{{ r.edad_anios }}a{% else %}-{% endif %} /
+          {% if r.sexo == 1 %}<span class="text-blue-600 font-medium">H</span>{% elif r.sexo == 2 %}<span class="text-pink-600 font-medium">M</span>{% else %}ND{% endif %}
+        </td>
+        <td class="py-3 px-4 text-[#64748B]">
+          <div class="font-medium text-[#0A2540]">{{ r.entidad_fed or '-' }}</div>
+          <div class="text-[10px] text-[#64748B]">{{ r.municipio or '' }}</div>
+        </td>
+        <td class="py-3 px-4">
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-[#D9F0F3] text-[#008B9E]">
+            Sem {{ r.sem_epi or '-' }}
+          </span>
+        </td>
+        <td class="py-3 px-4">
+          <div class="font-medium text-[#0A2540] truncate max-w-[150px]" title="{{ r.vacuna_1 }}">{{ r.vacuna_1 or '-' }}</div>
+          <div class="text-[10px] text-[#64748B]">{{ r.dosis_1 or '' }}</div>
+        </td>
+        <td class="py-3 px-4 text-[#64748B] font-mono text-[11px]">
+          {{ r.fecha_aplicacion_1 or '-' }}
+        </td>
+        <td class="py-3 px-4">
+          {% set est = (r.estado_actual or '')|lower %}
+          {% if 'recuperad' in est or 'alta' in est %}
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+              Recuperado
+            </span>
+          {% elif 'defun' in est or 'fallec' in est %}
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-800">
+              Defunción
+            </span>
+          {% elif 'grave' in est or 'hosp' in est %}
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800">
+              Grave
+            </span>
+          {% else %}
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-[#64748B]">
+              {{ r.estado_actual or 'No especificado' }}
+            </span>
+          {% endif %}
+        </td>
+        <td class="py-3 px-4 text-center">
+          <button onclick="verDetalleRegistro('{{ r.id }}')" class="p-1.5 text-[#64748B] hover:text-[#008B9E] hover:bg-[#D9F0F3] rounded-lg transition" title="Ver ficha completa">
+            <i data-lucide="eye" class="w-4 h-4"></i>
+          </button>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="9" class="py-8 text-center text-[#64748B]">
+          <div class="flex flex-col items-center justify-center space-y-2">
+            <i data-lucide="inbox" class="w-8 h-8 text-slate-300"></i>
+            <p class="text-sm">No se encontraron registros con los filtros seleccionados.</p>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Total Footer Info -->
+<div class="flex items-center justify-between text-xs text-[#64748B] px-2">
+  <span>Mostrando {{ records|length }} registro(s)</span>
+</div>

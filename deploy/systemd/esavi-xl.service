@@ -1,0 +1,32 @@
+[Unit]
+Description=Servicio ESAVI v2 - Vigilancia Epidemiologica (FastAPI / Uvicorn)
+After=network.target
+
+[Service]
+Type=simple
+User=najera
+Group=najera
+WorkingDirectory=/home/najera/dev/projects/esavi_dos
+EnvironmentFile=/home/najera/dev/projects/esavi_dos/.env.production
+
+# Ejecutar Uvicorn escuchando estrictamente en la IP LAN privada (10.0.0.2:8006)
+# Con 2 workers para concurrencia, soporte de cabeceras de proxy Caddy (10.0.0.4)
+ExecStart=/home/najera/dev/projects/esavi_dos/.venv/bin/uvicorn app.main:app \
+    --host 10.0.0.2 \
+    --port 8006 \
+    --workers 2 \
+    --proxy-headers \
+    --forwarded-allow-ips="10.0.0.4,127.0.0.1,10.0.0.0/24"
+
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Endurecimiento del proceso
+LimitNOFILE=65535
+TimeoutStopSec=30
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target

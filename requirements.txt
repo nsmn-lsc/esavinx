@@ -1,0 +1,25 @@
+# Core Framework & Servidor
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.6
+python-multipart>=0.0.9
+pydantic[email]>=2.9.2
+pydantic-settings>=2.5.2
+email-validator>=2.2.0
+jinja2>=3.1.4
+
+# Base de Datos & ORM
+sqlalchemy>=2.0.35
+alembic>=1.13.3
+psycopg[binary]>=3.2.0
+
+# Motor de Extracción & Análisis
+pandas>=2.2.3
+openpyxl>=3.1.5
+xlsxwriter>=3.2.0
+
+# Seguridad y Autenticación
+bcrypt>=4.2.0
+pyjwt>=2.9.0
+
+# Utilidades
+python-dotenv>=1.0.1

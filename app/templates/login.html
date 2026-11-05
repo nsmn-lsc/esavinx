@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar Sesión | Sistema ESAVI v2{% endblock %}
+
+{% block content %}
+<div class="min-h-[75vh] flex flex-col justify-center items-center py-12 sm:px-6 lg:px-8">
+  <div class="sm:mx-auto sm:w-full sm:max-w-md text-center">
+    <div class="flex justify-center mb-6">
+      <div class="p-4 bg-white rounded-3xl shadow-sm border border-[#E2E8F0] inline-flex items-center justify-center">
+        <img src="/static/logo_esavi.png" alt="Logo ESAVI" class="h-32 w-auto object-contain drop-shadow-sm">
+      </div>
+    </div>
+    <h2 class="text-3xl font-extrabold text-[#0A2540] tracking-tight">
+      Sistema ESAVI v2
+    </h2>
+    <p class="mt-2 text-sm text-[#64748B]">
+      Acceso seguro a la plataforma de vigilancia epidemiológica
+    </p>
+  </div>
+
+  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="bg-white py-8 px-6 shadow-xl rounded-2xl sm:px-10 border border-[#E2E8F0]">
+      
+      {% if error %}
+      <div class="mb-4 bg-red-50 border-l-4 border-rose-500 p-4 rounded-md">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <i data-lucide="alert-circle" class="h-5 w-5 text-rose-500"></i>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm font-medium text-rose-800">{{ error }}</p>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <form action="/login" method="POST" class="space-y-6">
+        <div>
+          <label for="username" class="block text-sm font-semibold text-[#0A2540]">
+            Usuario
+          </label>
+          <div class="mt-1.5 relative rounded-lg shadow-sm">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#64748B]">
+              <i data-lucide="user" class="w-5 h-5"></i>
+            </div>
+            <input id="username" name="username" type="text" autocomplete="username" required
+                   value="{{ username or '' }}"
+                   placeholder="admin"
+                   class="block w-full pl-10 pr-3 py-2.5 border border-[#E2E8F0] rounded-lg text-[#0A2540] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#17B8BE] focus:border-[#008B9E] sm:text-sm transition">
+          </div>
+        </div>
+
+        <div>
+          <label for="password" class="block text-sm font-semibold text-[#0A2540]">
+            Contraseña
+          </label>
+          <div class="mt-1.5 relative rounded-lg shadow-sm">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#64748B]">
+              <i data-lucide="lock" class="w-5 h-5"></i>
+            </div>
+            <input id="password" name="password" type="password" autocomplete="current-password" required
+                   placeholder="••••••••••••"
+                   class="block w-full pl-10 pr-3 py-2.5 border border-[#E2E8F0] rounded-lg text-[#0A2540] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#17B8BE] focus:border-[#008B9E] sm:text-sm transition">
+          </div>
+        </div>
+
+        <div>
+          <button type="submit"
+                  class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-semibold text-white bg-[#008B9E] hover:bg-[#0A2540] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#17B8BE] transition duration-150">
+            <i data-lucide="log-in" class="w-4 h-4 mr-2"></i>
+            Iniciar Sesión
+          </button>
+        </div>
+      </form>
+
+      <div class="mt-6 border-t border-[#E2E8F0] pt-4 text-center">
+        <p class="text-xs text-[#64748B]">
+          Acceso restringido únicamente a personal autorizado de epidemiología e inmunizaciones.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
