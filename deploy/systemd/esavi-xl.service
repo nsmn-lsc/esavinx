@@ -9,6 +9,9 @@ Group=najera
 WorkingDirectory=/home/najera/dev/projects/esavi_dos
 EnvironmentFile=/home/najera/dev/projects/esavi_dos/.env.production
 
+# Ejecutar migraciones automáticamente antes de iniciar el servidor
+ExecStartPre=/home/najera/dev/projects/esavi_dos/.venv/bin/alembic upgrade head
+
 # Ejecutar Uvicorn escuchando estrictamente en la IP LAN privada (10.0.0.2:8006)
 # Con 2 workers para concurrencia, soporte de cabeceras de proxy Caddy (10.0.0.4)
 ExecStart=/home/najera/dev/projects/esavi_dos/.venv/bin/uvicorn app.main:app \

@@ -26,31 +26,9 @@ from app.api.routes_export import router as export_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 1. Crear tablas en la base de datos si no existen
-    Base.metadata.create_all(bind=engine)
-    
-    # 2. Migración segura de columnas nuevas si la tabla ya existía
+    # Inicializar superusuario administrador por defecto si no existe
     db = SessionLocal()
     try:
-        from sqlalchemy import text
-        for col, col_type in [
-            ("jurisdiccion", "VARCHAR(100)"),
-            ("requirio_hospitalizacion", "INTEGER"),
-            ("recuperacion", "INTEGER")
-        ]:
-            try:
-                db.execute(text(f"ALTER TABLE esavi_records ADD COLUMN {col} {col_type}"))
-                db.commit()
-            except Exception:
-                db.rollback()
-
-        # Migración segura en users
-        try:
-            db.execute(text("ALTER TABLE users ADD COLUMN username VARCHAR(100)"))
-            db.commit()
-        except Exception:
-            db.rollback()
-
         AuthService.init_first_superuser(db)
     finally:
         db.close()
